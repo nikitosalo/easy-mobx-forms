@@ -131,7 +131,7 @@ export const App = observer(() => {
       <button type="button" onClick={reset}>
         reset form
       </button>
-      <button type="submit">send</button>
+      <button type="submit">submit</button>
     </form>
   );
 });
