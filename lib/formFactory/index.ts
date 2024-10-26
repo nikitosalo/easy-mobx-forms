@@ -98,22 +98,23 @@ export const formFactory = <
       },
       submit() {
         for (const fieldName of Object.getOwnPropertyNames(this.fields)) {
-          if (this.fields[fieldName].validateEvents.has("submit")) {
-            const field = this.fields[fieldName];
-            field.validate();
-          }
+          if (!this.fields[fieldName].validateEvents.has("submit")) return;
+
+          const field = this.fields[fieldName];
+          field.validate();
         }
 
         if (dynamicFieldsConfigs) {
           for (const fieldName of Object.getOwnPropertyNames(
             this.dynamicFields,
           )) {
-            if (this.dynamicFields[fieldName].validateEvents.has("submit")) {
-              const field = this.dynamicFields[fieldName];
-              field.items.forEach((item) => {
-                item.validate();
-              });
-            }
+            if (!this.dynamicFields[fieldName].validateEvents.has("submit"))
+              return;
+
+            const field = this.dynamicFields[fieldName];
+            field.items.forEach((item) => {
+              item.validate();
+            });
           }
         }
       },
