@@ -1,6 +1,7 @@
 import "./App.css";
 import { observer } from "mobx-react";
 import { formFactory } from "../lib";
+import { FormEventHandler } from "react";
 
 const formWithDynamicField = formFactory({
   fields: {
@@ -68,7 +69,7 @@ export const App = observer(() => {
   const { fields, dynamicFields, reset, isValid, isTouched, isDirty, submit } =
     formWithDynamicField;
 
-  const handleSubmit = (e) => {
+  const handleSubmit: FormEventHandler = (e) => {
     e.preventDefault();
     submit();
   };

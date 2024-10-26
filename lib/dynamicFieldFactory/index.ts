@@ -5,7 +5,7 @@ import {
   DynamicFieldType,
 } from "./types";
 import { makeAutoObservable } from "mobx";
-import { FieldErrorType, ValidationEventType } from "../validationTypes";
+import { ValidationEventType } from "../validationTypes";
 import { AnyValuesType } from "../formFactory/types";
 
 const dynamicFieldItemFactory = <
@@ -42,7 +42,7 @@ const dynamicFieldItemFactory = <
         this.validate();
       }
     },
-    isTouched: false as boolean,
+    isTouched: false,
     get isDirty() {
       if (calculateIsDirty)
         return calculateIsDirty({
@@ -51,7 +51,7 @@ const dynamicFieldItemFactory = <
         });
       return this.value !== this.init;
     },
-    errors: [] as FieldErrorType[],
+    errors: [],
     get firstError() {
       return this.errors.length ? this.errors[0] : null;
     },
@@ -91,6 +91,7 @@ const dynamicFieldItemFactory = <
       field.items.splice(findIndex, 1);
     },
   };
+
   return fieldItem;
 };
 
@@ -107,8 +108,8 @@ export const dynamicFieldFactory = <
   Value,
   Values,
   DynamicValues
->): DynamicFieldType<Value> => {
-  const field: DynamicFieldType<Value> = makeAutoObservable(
+>) => {
+  const field = makeAutoObservable<DynamicFieldType<Value>>(
     {
       name: fieldName,
       items: [] as DynamicFieldItemType<Value>[],
@@ -179,5 +180,6 @@ export const dynamicFieldFactory = <
       }),
     );
   });
+
   return field;
 };

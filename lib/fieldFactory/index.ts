@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { FieldFactoryType, FieldType } from "./types";
-import { FieldErrorType, ValidationEventType } from "../validationTypes";
+import { ValidationEventType } from "../validationTypes";
 import { AnyValuesType } from "../formFactory/types";
 
 export const fieldFactory = <
@@ -12,8 +12,8 @@ export const fieldFactory = <
   fieldConfig: { init, rules, validateOn = [], calculateIsDirty },
   formConfig,
   getValues,
-}: FieldFactoryType<Value, Values, DynamicValues>): FieldType<Value> => {
-  return makeAutoObservable(
+}: FieldFactoryType<Value, Values, DynamicValues>) => {
+  return makeAutoObservable<FieldType<Value>>(
     {
       name: fieldName,
       init,
@@ -35,7 +35,7 @@ export const fieldFactory = <
           this.validate();
         }
       },
-      isTouched: false as boolean,
+      isTouched: false,
       get isDirty() {
         if (calculateIsDirty)
           return calculateIsDirty({
@@ -44,7 +44,7 @@ export const fieldFactory = <
           });
         return this.value !== this.init;
       },
-      errors: [] as FieldErrorType[],
+      errors: [],
       get firstError() {
         return this.errors.length ? this.errors[0] : null;
       },
