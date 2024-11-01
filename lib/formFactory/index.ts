@@ -30,21 +30,18 @@ export const formFactory = <
   }) => {
     const fieldsValues: AnyValuesType = {};
 
-    for (const fieldName in fields) {
-      if (fields.hasOwnProperty(fieldName)) {
-        const field = fields[fieldName];
-        fieldsValues[field.name] = field.value;
-      }
+    for (const fieldName in Object.getOwnPropertyNames(fields)) {
+      const field = fields[fieldName];
+      fieldsValues[field.name] = field.value;
     }
 
     const dynamicFieldsValues: AnyValuesType = {};
 
-    for (const fieldName in dynamicFields) {
-      if (dynamicFields.hasOwnProperty(fieldName)) {
-        const field = dynamicFields[fieldName];
-        dynamicFieldsValues[field.name] = field.values;
-      }
+    for (const fieldName in Object.getOwnPropertyNames(dynamicFields)) {
+      const field = dynamicFields[fieldName];
+      dynamicFieldsValues[field.name] = field.values;
     }
+
     return {
       fieldsValues,
       dynamicFieldsValues,
@@ -56,10 +53,25 @@ export const formFactory = <
     dynamicFields: dynamicFieldsConfigs,
     validateOn = [],
   } = config;
-  for (const fieldName in fieldsConfigs) {
-    if (fieldsConfigs.hasOwnProperty(fieldName)) {
-      const fieldConfig = fieldsConfigs[fieldName];
-      fields[fieldName] = fieldFactory({
+  for (const fieldName of Object.getOwnPropertyNames(fieldsConfigs)) {
+    const fieldConfig = fieldsConfigs[fieldName];
+    fields[fieldName] = fieldFactory({
+      fieldName,
+      fieldConfig,
+      formConfig: {
+        validateOn,
+      },
+      getValues: () =>
+        getValues({
+          fields: fields as FieldsType<Values>,
+          dynamicFields: dynamicFields as DynamicFieldsType<DynamicValues>,
+        }),
+    });
+  }
+  if (dynamicFieldsConfigs) {
+    for (const fieldName of Object.getOwnPropertyNames(dynamicFieldsConfigs)) {
+      const fieldConfig = dynamicFieldsConfigs[fieldName];
+      dynamicFields[fieldName] = dynamicFieldFactory({
         fieldName,
         fieldConfig,
         formConfig: {
@@ -71,25 +83,6 @@ export const formFactory = <
             dynamicFields: dynamicFields as DynamicFieldsType<DynamicValues>,
           }),
       });
-    }
-  }
-  if (dynamicFieldsConfigs) {
-    for (const fieldName in dynamicFieldsConfigs) {
-      if (dynamicFieldsConfigs.hasOwnProperty(fieldName)) {
-        const fieldConfig = dynamicFieldsConfigs[fieldName];
-        dynamicFields[fieldName] = dynamicFieldFactory({
-          fieldName,
-          fieldConfig,
-          formConfig: {
-            validateOn,
-          },
-          getValues: () =>
-            getValues({
-              fields: fields as FieldsType<Values>,
-              dynamicFields: dynamicFields as DynamicFieldsType<DynamicValues>,
-            }),
-        });
-      }
     }
   }
 
@@ -104,60 +97,51 @@ export const formFactory = <
         });
       },
       submit() {
-        for (const fieldName in this.fields) {
-          if (
-            this.fields.hasOwnProperty(fieldName) &&
-            this.fields[fieldName].validateEvents.has("submit")
-          ) {
-            const field = this.fields[fieldName];
-            field.validate();
-          }
+        for (const fieldName of Object.getOwnPropertyNames(this.fields)) {
+          if (!this.fields[fieldName].validateEvents.has("submit")) return;
+
+          const field = this.fields[fieldName];
+          field.validate();
         }
 
         if (dynamicFieldsConfigs) {
-          for (const fieldName in this.dynamicFields) {
-            if (
-              this.dynamicFields.hasOwnProperty(fieldName) &&
-              this.dynamicFields[fieldName].validateEvents.has("submit")
-            ) {
-              const field = this.dynamicFields[fieldName];
-              field.items.forEach((item) => {
-                item.validate();
-              });
-            }
+          for (const fieldName of Object.getOwnPropertyNames(
+            this.dynamicFields,
+          )) {
+            if (!this.dynamicFields[fieldName].validateEvents.has("submit"))
+              return;
+
+            const field = this.dynamicFields[fieldName];
+            field.items.forEach((item) => {
+              item.validate();
+            });
           }
         }
       },
       reset() {
-        for (const fieldName in this.fields) {
-          if (this.fields.hasOwnProperty(fieldName)) {
-            const field = this.fields[fieldName];
-            field.reset();
-          }
+        for (const fieldName of Object.getOwnPropertyNames(this.fields)) {
+          const field = this.fields[fieldName];
+          field.reset();
         }
 
-        for (const fieldName in this.dynamicFields) {
-          if (this.dynamicFields.hasOwnProperty(fieldName)) {
-            const field = this.dynamicFields[fieldName];
-            field.reset();
-          }
+        for (const fieldName of Object.getOwnPropertyNames(
+          this.dynamicFields,
+        )) {
+          const field = this.dynamicFields[fieldName];
+          field.reset();
         }
       },
       get isValid() {
-        for (const fieldName in this.fields) {
-          if (
-            this.fields.hasOwnProperty(fieldName) &&
-            !this.fields[fieldName].isValid
-          ) {
+        for (const fieldName of Object.getOwnPropertyNames(this.fields)) {
+          if (!this.fields[fieldName].isValid) {
             return false;
           }
         }
 
-        for (const fieldName in this.dynamicFields) {
-          if (
-            this.dynamicFields.hasOwnProperty(fieldName) &&
-            !this.dynamicFields[fieldName].isValid
-          ) {
+        for (const fieldName of Object.getOwnPropertyNames(
+          this.dynamicFields,
+        )) {
+          if (!this.dynamicFields[fieldName].isValid) {
             return false;
           }
         }
@@ -165,43 +149,37 @@ export const formFactory = <
         return true;
       },
       get isTouched() {
-        for (const fieldName in this.fields) {
-          if (
-            this.fields.hasOwnProperty(fieldName) &&
-            this.fields[fieldName].isTouched
-          ) {
+        for (const fieldName of Object.getOwnPropertyNames(this.fields)) {
+          if (this.fields[fieldName].isTouched) {
             return true;
           }
         }
 
-        for (const fieldName in this.dynamicFields) {
-          if (
-            this.dynamicFields.hasOwnProperty(fieldName) &&
-            this.dynamicFields[fieldName].isTouched
-          ) {
+        for (const fieldName of Object.getOwnPropertyNames(
+          this.dynamicFields,
+        )) {
+          if (this.dynamicFields[fieldName].isTouched) {
             return true;
           }
         }
+
         return false;
       },
       get isDirty() {
-        for (const fieldName in this.fields) {
-          if (
-            this.fields.hasOwnProperty(fieldName) &&
-            this.fields[fieldName].isDirty
-          ) {
+        for (const fieldName of Object.getOwnPropertyNames(this.fields)) {
+          if (this.fields[fieldName].isDirty) {
             return true;
           }
         }
 
-        for (const fieldName in this.dynamicFields) {
-          if (
-            this.dynamicFields.hasOwnProperty(fieldName) &&
-            this.dynamicFields[fieldName].isDirty
-          ) {
+        for (const fieldName of Object.getOwnPropertyNames(
+          this.dynamicFields,
+        )) {
+          if (this.dynamicFields[fieldName].isDirty) {
             return true;
           }
         }
+
         return false;
       },
     },
