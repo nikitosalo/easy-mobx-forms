@@ -2,6 +2,7 @@ import {
   RuleType,
   ValidationEventType,
   FieldErrorType,
+  FieldValidateGeneratorType,
 } from "../validationTypes";
 import { AnyValuesType, FormValuesType } from "../formFactory/types";
 
@@ -42,7 +43,8 @@ export type FieldType<Value> = {
   firstError: FieldErrorType | null;
   resetErrors: () => void;
   reset: () => void;
-  validate: () => void;
+  validate: () => FieldValidateGeneratorType;
   addError: (error: FieldErrorType) => void;
   isValid: boolean;
+  isValidating: boolean;
 };

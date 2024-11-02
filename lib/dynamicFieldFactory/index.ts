@@ -5,7 +5,7 @@ import {
   DynamicFieldType,
 } from "./types";
 import { makeAutoObservable } from "mobx";
-import { ValidationEventType } from "../validationTypes";
+import { FieldErrorType, ValidationEventType } from "../validationTypes";
 import { AnyValuesType } from "../formFactory/types";
 
 const dynamicFieldItemFactory = <
@@ -63,19 +63,32 @@ const dynamicFieldItemFactory = <
       this.value = this.init;
       this.isTouched = false;
     },
-    validate() {
+    isValidating: false,
+    *validate() {
       if (rules) {
         this.isTouched = true;
         this.errors = [];
+        this.isValidating = true;
 
-        rules.forEach((rule) => {
-          if (!rule.validator(this.value, getValues())) {
-            this.errors.push({
-              name: rule.name,
-              errorText: rule.errorText,
-            });
-          }
-        });
+        const validationResults: boolean[] = yield Promise.all(
+          rules.map(async (rule) => rule.validator(this.value, getValues())),
+        );
+
+        this.errors = validationResults.reduce<FieldErrorType[]>(
+          (acc, value, index) => {
+            if (!value) {
+              const { name, errorText } = rules[index];
+              acc.push({
+                name,
+                errorText,
+              });
+            }
+            return acc;
+          },
+          [],
+        );
+
+        this.isValidating = false;
       }
     },
     addError(error) {
@@ -92,7 +105,7 @@ const dynamicFieldItemFactory = <
     },
   };
 
-  return fieldItem;
+  return makeAutoObservable(fieldItem, {}, { autoBind: true });
 };
 
 export const dynamicFieldFactory = <
@@ -104,11 +117,7 @@ export const dynamicFieldFactory = <
   fieldConfig: { init, validateOn = [], rules, calculateIsDirty },
   formConfig,
   getValues,
-}: DynamicFieldFactoryType<
-  Value,
-  Values,
-  DynamicValues
->) => {
+}: DynamicFieldFactoryType<Value, Values, DynamicValues>) => {
   const field = makeAutoObservable<DynamicFieldType<Value>>(
     {
       name: fieldName,
@@ -123,6 +132,12 @@ export const dynamicFieldFactory = <
           values.push(item.value);
         }
         return values;
+      },
+      isValidating: false,
+      *validate() {
+        this.isValidating = true;
+        yield Promise.all(this.items.map(async (item) => item.validate()));
+        this.isValidating = false;
       },
       reset() {
         this.items = init.map((init) =>
