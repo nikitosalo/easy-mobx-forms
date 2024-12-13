@@ -64,7 +64,7 @@ export const fieldFactory = <
           this.isValidating = true;
 
           const validationResults: boolean[] = yield Promise.all(
-            rules.map(async (rule) => rule.validator(this.value, getValues())),
+            rules.map((rule) => rule.validator(this.value, getValues())),
           );
 
           this.errors = validationResults.reduce<FieldErrorType[]>(

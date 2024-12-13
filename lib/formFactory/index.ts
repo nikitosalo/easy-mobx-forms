@@ -126,7 +126,7 @@ export const formFactory = <
           }
         }
 
-        yield Promise.all(validators.map(async (validator) => validator()));
+        yield Promise.all(validators.map((validator) => validator()));
         this.isValidating = false;
 
         if (this.isValid && afterSubmit) {
