@@ -1,4 +1,8 @@
-import { ValidationEventType } from "../validationTypes";
+import {
+  DynamicFieldValidateGeneratorType,
+  FieldValidateGeneratorType,
+  ValidationEventType,
+} from "../validationTypes";
 import { FieldConfigType, FieldType } from "../fieldFactory/types";
 import {
   DynamicFieldConfigType,
@@ -62,6 +66,9 @@ export type FormConfigType<
   fields: FieldConfigsType<Values, DynamicValues>;
   dynamicFields?: DynamicFieldConfigsType<DynamicValues, Values>;
   validateOn?: ValidationEventType[];
+  afterSubmit?: (
+    values: FormValuesType<Values, DynamicValues>,
+  ) => void | Promise<void>;
 };
 
 export type FormType<
@@ -71,9 +78,16 @@ export type FormType<
   fields: FieldsType<Values>;
   dynamicFields: DynamicFieldsType<DynamicValues>;
   values: FormValuesType<Values, DynamicValues>;
-  submit: () => void;
+  submit: () => Generator<
+    | void
+    | Promise<
+        (FieldValidateGeneratorType | DynamicFieldValidateGeneratorType)[]
+      >
+    | Promise<void>
+  >;
   reset: () => void;
-  isValid: boolean;
   isTouched: boolean;
   isDirty: boolean;
+  isValid: boolean;
+  isValidating: boolean;
 };

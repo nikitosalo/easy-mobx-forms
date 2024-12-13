@@ -9,7 +9,10 @@ type ValidatorType<
   Value,
   Values extends AnyValuesType,
   DynamicValues extends AnyValuesType,
-> = (value: Value, values: FormValuesType<Values, DynamicValues>) => boolean;
+> = (
+  value: Value,
+  values: FormValuesType<Values, DynamicValues>,
+) => boolean | Promise<boolean>;
 
 export type RuleType<
   Value,
@@ -22,3 +25,15 @@ export type RuleType<
 };
 
 export type ValidationEventType = "submit" | "blur" | "change";
+
+export type FieldValidateGeneratorType = Generator<
+  Promise<boolean[]>,
+  void,
+  boolean[]
+>;
+
+export type DynamicFieldValidateGeneratorType = Generator<
+  Promise<FieldValidateGeneratorType[]>,
+  void,
+  unknown
+>;

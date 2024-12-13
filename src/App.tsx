@@ -11,10 +11,9 @@ const formWithDynamicField = formFactory({
         {
           name: "required",
           errorText: "required",
-          validator: (value, values) => {
-            console.log(values);
-            return Boolean(
-              value && values.dynamicFieldsValues.numbers.length > 3,
+          validator: async (value) => {
+            return await new Promise((resolve) =>
+              setTimeout(() => resolve(Boolean(value)), 2000),
             );
           },
         },
@@ -38,9 +37,7 @@ const formWithDynamicField = formFactory({
         {
           name: "required",
           errorText: "required",
-          validator: (value) => {
-            return Boolean(value);
-          },
+          validator: (value) => Boolean(value),
         },
       ],
     },
@@ -63,6 +60,14 @@ const formWithDynamicField = formFactory({
     },
   },
   validateOn: ["submit", "change"],
+  afterSubmit: async (values) => {
+    await new Promise<void>((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 1000);
+    });
+    console.log("afterSubmit", values);
+  },
 });
 
 export const App = observer(() => {
@@ -82,6 +87,7 @@ export const App = observer(() => {
         onChange={(e) => fields.firstName.onChange(e.target.value)}
       />
       <div className="errors">
+        <p>{`isValidating: ${fields.firstName.isValidating}`}</p>
         {fields.firstName.errors.map((error) => (
           <p key={error.name} className="error">
             {error.errorText}
@@ -110,6 +116,7 @@ export const App = observer(() => {
             </button>
           </div>
           <div className="errors">
+            <p>{`isValidating: ${item.isValidating}`}</p>
             {item.errors.map((error) => (
               <p key={error.name} className="error">
                 {error.errorText}

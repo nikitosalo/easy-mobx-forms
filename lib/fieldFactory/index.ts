@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { FieldFactoryType, FieldType } from "./types";
-import { ValidationEventType } from "../validationTypes";
+import { FieldErrorType, ValidationEventType } from "../validationTypes";
 import { AnyValuesType } from "../formFactory/types";
 
 export const fieldFactory = <
@@ -56,19 +56,32 @@ export const fieldFactory = <
         this.value = this.init;
         this.isTouched = false;
       },
-      validate() {
+      isValidating: false,
+      *validate() {
         if (rules) {
           this.isTouched = true;
           this.errors = [];
+          this.isValidating = true;
 
-          rules.forEach((rule) => {
-            if (!rule.validator(this.value, getValues())) {
-              this.errors.push({
-                name: rule.name,
-                errorText: rule.errorText,
-              });
-            }
-          });
+          const validationResults: boolean[] = yield Promise.all(
+            rules.map((rule) => rule.validator(this.value, getValues())),
+          );
+
+          this.errors = validationResults.reduce<FieldErrorType[]>(
+            (acc, value, index) => {
+              if (!value) {
+                const { name, errorText } = rules[index];
+                acc.push({
+                  name,
+                  errorText,
+                });
+              }
+              return acc;
+            },
+            [],
+          );
+
+          this.isValidating = false;
         }
       },
       addError(error) {

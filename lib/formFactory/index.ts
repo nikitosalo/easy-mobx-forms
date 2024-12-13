@@ -11,13 +11,17 @@ import {
   DynamicFieldsType,
   FieldsType,
 } from "./types";
+import {
+  DynamicFieldValidateGeneratorType,
+  FieldValidateGeneratorType,
+} from "../validationTypes.ts";
 
 export const formFactory = <
   Values extends AnyValuesType,
   DynamicValues extends AnyValuesType,
 >(
   config: FormConfigType<Values, DynamicValues>,
-): FormType<Values, DynamicValues> => {
+) => {
   const fields: AnyFieldsType = {};
   const dynamicFields: DynamicAnyFieldsType = {};
 
@@ -30,14 +34,16 @@ export const formFactory = <
   }) => {
     const fieldsValues: AnyValuesType = {};
 
-    for (const fieldName in Object.getOwnPropertyNames(fields)) {
-      const field = fields[fieldName];
-      fieldsValues[field.name] = field.value;
+    for (const fieldName of Object.getOwnPropertyNames(fields)) {
+      if (fields[fieldName]) {
+        const field = fields[fieldName];
+        fieldsValues[field.name] = field.value;
+      }
     }
 
     const dynamicFieldsValues: AnyValuesType = {};
 
-    for (const fieldName in Object.getOwnPropertyNames(dynamicFields)) {
+    for (const fieldName of Object.getOwnPropertyNames(dynamicFields)) {
       const field = dynamicFields[fieldName];
       dynamicFieldsValues[field.name] = field.values;
     }
@@ -52,6 +58,7 @@ export const formFactory = <
     fields: fieldsConfigs,
     dynamicFields: dynamicFieldsConfigs,
     validateOn = [],
+    afterSubmit,
   } = config;
   for (const fieldName of Object.getOwnPropertyNames(fieldsConfigs)) {
     const fieldConfig = fieldsConfigs[fieldName];
@@ -86,7 +93,7 @@ export const formFactory = <
     }
   }
 
-  return makeAutoObservable(
+  return makeAutoObservable<FormType<Values, DynamicValues>>(
     {
       fields: fields as FieldsType<Values>,
       dynamicFields: dynamicFields as DynamicFieldsType<DynamicValues>,
@@ -96,12 +103,16 @@ export const formFactory = <
           dynamicFields: this.dynamicFields,
         });
       },
-      submit() {
+      isValidating: false,
+      *submit() {
+        this.isValidating = true;
+        const validators: (() =>
+          | FieldValidateGeneratorType
+          | DynamicFieldValidateGeneratorType)[] = [];
         for (const fieldName of Object.getOwnPropertyNames(this.fields)) {
           if (!this.fields[fieldName].validateEvents.has("submit")) return;
 
-          const field = this.fields[fieldName];
-          field.validate();
+          validators.push(this.fields[fieldName].validate);
         }
 
         if (dynamicFieldsConfigs) {
@@ -111,11 +122,15 @@ export const formFactory = <
             if (!this.dynamicFields[fieldName].validateEvents.has("submit"))
               return;
 
-            const field = this.dynamicFields[fieldName];
-            field.items.forEach((item) => {
-              item.validate();
-            });
+            validators.push(this.dynamicFields[fieldName].validate);
           }
+        }
+
+        yield Promise.all(validators.map((validator) => validator()));
+        this.isValidating = false;
+
+        if (this.isValid && afterSubmit) {
+          yield afterSubmit(this.values);
         }
       },
       reset() {

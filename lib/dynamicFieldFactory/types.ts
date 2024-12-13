@@ -1,5 +1,7 @@
 import {
+  DynamicFieldValidateGeneratorType,
   FieldErrorType,
+  FieldValidateGeneratorType,
   RuleType,
   ValidationEventType,
 } from "../validationTypes";
@@ -58,15 +60,17 @@ export type DynamicFieldItemType<Value> = {
   firstError: FieldErrorType | null;
   resetErrors: () => void;
   reset: () => void;
-  validate: () => void;
+  validate: () => FieldValidateGeneratorType;
   addError: (error: FieldErrorType) => void;
   isValid: boolean;
+  isValidating: boolean;
   deleteFieldItem: () => void;
 };
 
 export type DynamicFieldType<Value> = {
   name: string;
   values: Value[];
+  validate: () => DynamicFieldValidateGeneratorType;
   validateEvents: Set<ValidationEventType>;
   items: DynamicFieldItemType<Value>[];
   reset: () => void;
@@ -74,4 +78,5 @@ export type DynamicFieldType<Value> = {
   isTouched: boolean;
   isDirty: boolean;
   isValid: boolean;
+  isValidating: boolean;
 };
