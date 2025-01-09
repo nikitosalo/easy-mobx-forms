@@ -1,74 +1,52 @@
-type SimpleFieldConfigType<Value> = {
-  value: Value;
-};
-
-type DynamicFieldConfigType<Value> = {
-  value: Value;
-  isDynamic: true;
-};
+type AnySimpleValueType = number | string | boolean;
+type AnyValueType = AnySimpleValueType | Array<AnySimpleValueType>;
 
 type FieldConfigType<Value> =
-  | SimpleFieldConfigType<Value>
-  | DynamicFieldConfigType<Value>;
+    | {
+          value: Value extends Array<AnyValueType> ? Value : never;
+          isDynamic: true;
+      }
+    | {
+          value: Value;
+          isDynamic?: false;
+      };
 
 type AnyFieldsConfigType = {
-  [key: string]: FieldConfigType<any>;
+    [key: string]: FieldConfigType<AnyValueType>;
 };
 
-type ConfigType<Fields extends AnyFieldsConfigType> = {
-  fields: {
-    [K in keyof Fields]: Fields[K];
-  };
+type ConfigType<Fields> = {
+    fields: {
+        [K in keyof Fields]: Fields[K];
+    };
 };
 
-type SimpleFieldType<Value> = {
-  simpleValue: Value;
-};
+type FormType<Fields> = ConfigType<Fields>;
 
-type DynamicFieldType<Value> = {
-  dynamicValue: Value;
-};
-
-type ConditionalFieldType<
-  FieldConfig extends FieldConfigType<FieldConfig["value"]>,
-> =
-  FieldConfig extends SimpleFieldConfigType<FieldConfig["value"]>
-    ? SimpleFieldType<FieldConfig["value"]>
-    : DynamicFieldType<FieldConfig["value"]>;
-
-type FormType<Fields extends AnyFieldsConfigType> = {
-  fields: {
-    [K in keyof Fields]: ConditionalFieldType<Fields[K]>;
-  };
-};
-
-const formFactory = <
-  Fields extends AnyFieldsConfigType,
-  // Values extends AnyValuesType<Fields>,
->(
-  config: ConfigType<Fields>,
-): FormType<Fields> => {
-  return {
-    fields: Object.getOwnPropertyNames(config.fields).reduce<
-      FormType<Fields>["fields"]
-    >((acc, key) => {
-      acc[key] = config.fields[key];
-      return acc;
-    }, {}) as unknown as FormType<Fields>["fields"],
-  };
-};
+const formFactory = <Fields extends AnyFieldsConfigType>(
+    config: ConfigType<Fields>
+) =>
+    ({
+        fields: Object.getOwnPropertyNames(config.fields).reduce(
+            (acc, key) => ({
+                ...acc,
+                [key]: config.fields[key],
+            }),
+            {}
+        ),
+    }) as FormType<Fields>;
 
 const form = formFactory({
-  fields: {
-    simple: {
-      value: "",
+    fields: {
+        simple: {
+            value: '',
+        },
+        dynamic: {
+            value: [3],
+            isDynamic: true,
+        },
     },
-    dynamic: {
-      value: [3, ""],
-      isDynamic: true,
-    },
-  },
 });
 
-const first = form.fields.simple.simpleValue;
-const second = form.fields.dynamic.dynamicValue;
+export const first = form.fields.simple.value;
+export const second = form.fields.dynamic.value;
