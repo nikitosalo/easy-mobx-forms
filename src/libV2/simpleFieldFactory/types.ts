@@ -2,30 +2,38 @@ import {
   RuleType,
   ValidationEventType,
   FieldErrorType,
+  FieldValidateGeneratorType,
 } from "../validationTypes.ts";
 import { AnyValueType } from "../types.ts";
+import { AnyFieldsConfigType, FormValuesType } from "../formFactory/types.ts";
 
-export type SimpleFieldConfigType<Value extends AnyValueType> = {
+export interface SimpleFieldConfigType<
+  Value extends AnyValueType,
+  Fields extends AnyFieldsConfigType,
+> {
   init: Value;
   isDynamic?: false;
-  rules?: RuleType<Value>[];
+  rules?: RuleType<Value, Fields>[];
   validateOn?: ValidationEventType[];
   calculateIsDirty?: (params: { init: Value; current: Value }) => boolean;
-};
+}
 
-export type SimpleFieldFactoryType<Value extends AnyValueType> = {
-  config: SimpleFieldConfigType<Value>;
+export interface SimpleFieldFactoryType<
+  Value extends AnyValueType,
+  Fields extends AnyFieldsConfigType,
+> {
+  config: SimpleFieldConfigType<Value, Fields>;
   name: string;
   formConfig: {
     validateOn: ValidationEventType[];
+    getValues: () => FormValuesType<Fields>;
   };
-};
+}
 
-export type SimpleFieldType<Value extends AnyValueType> = {
+export interface SimpleFieldType<Value extends AnyValueType> {
   name: string;
   readonly init: Value;
   value: Value;
-  readonly validateEvents: Set<ValidationEventType>;
   onChange: (value: Value) => void;
   onBlur: () => void;
   isTouched: boolean;
@@ -34,7 +42,10 @@ export type SimpleFieldType<Value extends AnyValueType> = {
   firstError: FieldErrorType | null;
   resetErrors: () => void;
   reset: () => void;
-  validate: () => void;
   addError: (error: FieldErrorType) => void;
+  readonly validateEvents: Set<ValidationEventType>;
+  validate: () => FieldValidateGeneratorType;
+  isValidating: boolean;
   isValid: boolean;
-};
+  readonly isDynamic: false;
+}

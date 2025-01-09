@@ -1,34 +1,51 @@
 import { AnyValueType } from "../types.ts";
-import { RuleType, ValidationEventType } from "../validationTypes.ts";
-import { FieldErrorType } from "../../../lib/validationTypes.ts";
+import {
+  DynamicFieldValidateGeneratorType,
+  FieldValidateGeneratorType,
+  RuleType,
+  ValidationEventType,
+  FieldErrorType,
+} from "../validationTypes.ts";
+import { AnyFieldsConfigType, FormValuesType } from "../formFactory/types.ts";
 
-export type DynamicFieldConfigType<Value extends Array<AnyValueType>> = {
+export interface DynamicFieldConfigType<
+  Value extends Array<AnyValueType>,
+  Fields extends AnyFieldsConfigType,
+> {
   init: Value;
   isDynamic: true;
-  rules?: RuleType<Value[number]>[];
+  rules?: RuleType<Value[number], Fields>[];
   validateOn?: ValidationEventType[];
   calculateIsDirty?: (params: {
     init: Value[number];
     current: Value[number];
   }) => boolean;
-};
+}
 
-export type DynamicFieldFactoryType<Value extends Array<AnyValueType>> = {
-  config: DynamicFieldConfigType<Value>;
+export interface DynamicFieldFactoryType<
+  Value extends Array<AnyValueType>,
+  Fields extends AnyFieldsConfigType,
+> {
+  config: DynamicFieldConfigType<Value, Fields>;
   name: string;
   formConfig: {
     validateOn: ValidationEventType[];
+    getValues: () => FormValuesType<Fields>;
   };
-};
+}
 
-export type DynamicFieldItemFactoryType<Value extends AnyValueType> = {
+export interface DynamicFieldItemFactoryType<
+  Value extends AnyValueType,
+  Fields extends AnyFieldsConfigType,
+> {
   init: Value;
   validateEvents: Set<ValidationEventType>;
-  rules?: RuleType<Value>[];
+  rules?: RuleType<Value, Fields>[];
   calculateIsDirty?: (params: { init: Value; current: Value }) => boolean;
-};
+  getValues: () => FormValuesType<Fields>;
+}
 
-export type DynamicFieldItemType<Value extends AnyValueType> = {
+export interface DynamicFieldItemType<Value extends AnyValueType> {
   id: string;
   readonly init: Value;
   value: Value;
@@ -40,20 +57,24 @@ export type DynamicFieldItemType<Value extends AnyValueType> = {
   firstError: FieldErrorType | null;
   resetErrors: () => void;
   reset: () => void;
-  validate: () => void;
   addError: (error: FieldErrorType) => void;
+  validate: () => FieldValidateGeneratorType;
+  isValidating: boolean;
   isValid: boolean;
-};
+}
 
-export type DynamicFieldType<Values extends Array<AnyValueType>> = {
+export interface DynamicFieldType<Values extends Array<AnyValueType>> {
   name: string;
   items: DynamicFieldItemType<Values[number]>[];
   addFieldItem: (init: Values[number]) => void;
   deleteFieldItem: (id: string) => void;
   values: Values[number][];
   reset: () => void;
-  readonly validateEvents: Set<ValidationEventType>;
   isTouched: boolean;
   isDirty: boolean;
+  readonly validateEvents: Set<ValidationEventType>;
+  validate: () => DynamicFieldValidateGeneratorType;
+  isValidating: boolean;
   isValid: boolean;
-};
+  readonly isDynamic: true;
+}

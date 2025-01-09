@@ -6,13 +6,19 @@ import {
 } from "./types.ts";
 import { makeAutoObservable } from "mobx";
 import { AnyValueType } from "../types.ts";
+import { FieldErrorType } from "../../../lib/validationTypes.ts";
+import { AnyFieldsConfigType } from "../formFactory/types.ts";
 
-const dynamicFieldItemFactory = <Value extends AnyValueType>({
+const dynamicFieldItemFactory = <
+  Value extends AnyValueType,
+  Fields extends AnyFieldsConfigType,
+>({
   init,
   validateEvents,
   calculateIsDirty,
   rules,
-}: DynamicFieldItemFactoryType<Value>) => {
+  getValues,
+}: DynamicFieldItemFactoryType<Value, Fields>) => {
   return makeAutoObservable<DynamicFieldItemType<Value>>({
     id:
       window.crypto.randomUUID?.() ??
@@ -53,19 +59,32 @@ const dynamicFieldItemFactory = <Value extends AnyValueType>({
       this.value = this.init;
       this.isTouched = false;
     },
-    validate() {
+    isValidating: false,
+    *validate() {
       if (rules) {
         this.isTouched = true;
         this.errors = [];
+        this.isValidating = true;
 
-        rules.forEach((rule) => {
-          if (!rule.validator(this.value)) {
-            this.errors.push({
-              name: rule.name,
-              errorText: rule.errorText,
-            });
-          }
-        });
+        const validationResults: boolean[] = yield Promise.all(
+          rules.map((rule) => rule.validator(this.value, getValues())),
+        );
+
+        this.errors = validationResults.reduce<FieldErrorType[]>(
+          (acc, value, index) => {
+            if (!value) {
+              const { name, errorText } = rules[index];
+              acc.push({
+                name,
+                errorText,
+              });
+            }
+            return acc;
+          },
+          [],
+        );
+
+        this.isValidating = false;
       }
     },
     addError(error) {
@@ -77,11 +96,14 @@ const dynamicFieldItemFactory = <Value extends AnyValueType>({
   });
 };
 
-export const dynamicFieldFactory = <Values extends AnyValueType[]>({
+export const dynamicFieldFactory = <
+  Values extends AnyValueType[],
+  Fields extends AnyFieldsConfigType,
+>({
   config: { init, rules, validateOn = [], calculateIsDirty },
   name,
   formConfig,
-}: DynamicFieldFactoryType<Values>) => {
+}: DynamicFieldFactoryType<Values, Fields>) => {
   const validateEvents = new Set([...validateOn, ...formConfig.validateOn]);
 
   const createFieldItems = () =>
@@ -91,6 +113,7 @@ export const dynamicFieldFactory = <Values extends AnyValueType[]>({
         rules,
         validateEvents,
         calculateIsDirty,
+        getValues: formConfig.getValues,
       }),
     );
 
@@ -104,6 +127,7 @@ export const dynamicFieldFactory = <Values extends AnyValueType[]>({
           rules,
           validateEvents,
           calculateIsDirty,
+          getValues: formConfig.getValues,
         }),
       );
     },
@@ -122,6 +146,15 @@ export const dynamicFieldFactory = <Values extends AnyValueType[]>({
       this.items = createFieldItems();
     },
     validateEvents,
+    *validate() {
+      yield Promise.all(this.items.map((item) => item.validate()));
+    },
+    get isValidating() {
+      for (const item of this.items) {
+        if (item.isValidating) return true;
+      }
+      return false;
+    },
     get isDirty() {
       for (const item of this.items) {
         if (item.isDirty) return true;
@@ -140,5 +173,6 @@ export const dynamicFieldFactory = <Values extends AnyValueType[]>({
       }
       return true;
     },
+    isDynamic: true,
   });
 };

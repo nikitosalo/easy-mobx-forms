@@ -1,12 +1,17 @@
 import { SimpleFieldFactoryType, SimpleFieldType } from "./types.ts";
 import { makeAutoObservable } from "mobx";
 import { AnyValueType } from "../types.ts";
+import { FieldErrorType } from "../../../lib/validationTypes.ts";
+import { AnyFieldsConfigType } from "../formFactory/types.ts";
 
-export const simpleFieldFactory = <Value extends AnyValueType>({
+export const simpleFieldFactory = <
+  Value extends AnyValueType,
+  Fields extends AnyFieldsConfigType,
+>({
   config: { init, validateOn = [], calculateIsDirty, rules },
   name,
   formConfig,
-}: SimpleFieldFactoryType<Value>) => {
+}: SimpleFieldFactoryType<Value, Fields>) => {
   return makeAutoObservable<SimpleFieldType<Value>>({
     name,
     init,
@@ -46,19 +51,34 @@ export const simpleFieldFactory = <Value extends AnyValueType>({
       this.value = this.init;
       this.isTouched = false;
     },
-    validate() {
+    isValidating: false,
+    *validate() {
       if (rules) {
         this.isTouched = true;
         this.errors = [];
+        this.isValidating = true;
 
-        rules.forEach((rule) => {
-          if (!rule.validator(this.value)) {
-            this.errors.push({
-              name: rule.name,
-              errorText: rule.errorText,
-            });
-          }
-        });
+        const validationResults: boolean[] = yield Promise.all(
+          rules.map((rule) =>
+            rule.validator(this.value, formConfig.getValues()),
+          ),
+        );
+
+        this.errors = validationResults.reduce<FieldErrorType[]>(
+          (acc, value, index) => {
+            if (!value) {
+              const { name, errorText } = rules[index];
+              acc.push({
+                name,
+                errorText,
+              });
+            }
+            return acc;
+          },
+          [],
+        );
+
+        this.isValidating = false;
       }
     },
     addError(error) {
@@ -67,5 +87,6 @@ export const simpleFieldFactory = <Value extends AnyValueType>({
     get isValid() {
       return !this.errors.length;
     },
+    isDynamic: false,
   });
 };

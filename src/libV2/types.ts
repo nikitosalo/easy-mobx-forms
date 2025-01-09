@@ -1,6 +1,11 @@
-type AnyPrimitiveValue = number | string | boolean;
+type AnyPrimitiveValueType = number | string | boolean;
 
-type AnyObjectValue = Record<string, unknown>;
+interface AnyObjectValueType {
+  [key: string]: unknown;
+}
 
-type AnySimpleValueType = AnyPrimitiveValue | AnyObjectValue;
+type AnySimpleValueType = AnyPrimitiveValueType | AnyObjectValueType;
 export type AnyValueType = AnySimpleValueType | Array<AnySimpleValueType>;
+export interface AnyValuesType {
+  [key: string]: AnyValueType | Array<AnyValueType>;
+}

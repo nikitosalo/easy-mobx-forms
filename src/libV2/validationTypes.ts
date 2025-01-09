@@ -1,16 +1,31 @@
-import { AnyValueType } from "./types.ts";
+import { AnyFieldsConfigType, FormValuesType } from "./formFactory/types.ts";
 
-export type FieldErrorType = {
+export interface FieldErrorType {
   name: string;
   errorText: string;
-};
+}
 
-type ValidatorType<Value extends AnyValueType> = (value: Value) => boolean;
+type ValidatorType<Value, Fields extends AnyFieldsConfigType> = (
+  value: Value,
+  values: FormValuesType<Fields>,
+) => boolean | Promise<boolean>;
 
-export type RuleType<Value extends AnyValueType> = {
+export interface RuleType<Value, Fields extends AnyFieldsConfigType> {
   name: string;
   errorText: string;
-  validator: ValidatorType<Value>;
-};
+  validator: ValidatorType<Value, Fields>;
+}
 
 export type ValidationEventType = "submit" | "blur" | "change";
+
+export type FieldValidateGeneratorType = Generator<
+  Promise<boolean[]>,
+  void,
+  boolean[]
+>;
+
+export type DynamicFieldValidateGeneratorType = Generator<
+  Promise<FieldValidateGeneratorType[]>,
+  void,
+  unknown
+>;
