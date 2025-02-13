@@ -1,6 +1,6 @@
 import "./App.css";
 import { observer } from "mobx-react";
-import { formFactory } from "../lib";
+import { formFactory } from "./libV2";
 import { FormEventHandler } from "react";
 
 const formWithDynamicField = formFactory({
@@ -22,17 +22,9 @@ const formWithDynamicField = formFactory({
     number: {
       init: 0,
     },
-    array: {
-      init: {
-        a: 1,
-        b: "",
-        c: ["", 1],
-      },
-    },
-  },
-  dynamicFields: {
     numbers: {
       init: ["1", "3"],
+      isDynamic: true,
       rules: [
         {
           name: "required",
@@ -41,37 +33,12 @@ const formWithDynamicField = formFactory({
         },
       ],
     },
-    objects: {
-      init: [
-        {
-          a: 1,
-          b: "",
-        },
-      ],
-      rules: [
-        {
-          name: "required_a",
-          errorText: "required",
-          validator: (value) => {
-            return Boolean(value.a);
-          },
-        },
-      ],
-    },
   },
   validateOn: ["submit", "change"],
-  afterSubmit: async (values) => {
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 1000);
-    });
-    console.log("afterSubmit", values);
-  },
 });
 
 export const App = observer(() => {
-  const { fields, dynamicFields, reset, isValid, isTouched, isDirty, submit } =
+  const { fields, reset, isValid, isTouched, isDirty, submit } =
     formWithDynamicField;
 
   const handleSubmit: FormEventHandler = (e) => {
@@ -100,7 +67,7 @@ export const App = observer(() => {
         type="number"
         onChange={(e) => fields.number.onChange(Number(e.target.value))}
       />
-      {dynamicFields.numbers.items.map((item) => (
+      {fields.numbers.items.map((item) => (
         <div key={item.id}>
           <div>
             <input
@@ -111,7 +78,10 @@ export const App = observer(() => {
                 item.onChange(e.target.value);
               }}
             />
-            <button type="button" onClick={item.deleteFieldItem}>
+            <button
+              type="button"
+              onClick={() => fields.numbers.deleteFieldItem(item.id)}
+            >
               delete field
             </button>
           </div>
@@ -128,7 +98,7 @@ export const App = observer(() => {
       <button
         type="button"
         onClick={() => {
-          dynamicFields.numbers.addFieldItem("4");
+          fields.numbers.addFieldItem("4");
         }}
       >
         add field
