@@ -5,16 +5,16 @@
 ## Установка
 
 ```bash
-npm install @nikitosalo/mobx-forms
+npm install easy-mobx-forms
 # or
-yarn add @nikitosalo/mobx-forms
+yarn add easy-mobx-forms
 ```
 
 ## Простой пример формы логина
 
 ```typescript
 import { observer } from 'mobx-react';
-import { formFactory } from '@nikitosalo/mobx-forms';
+import { formFactory } from 'easy-mobx-forms';
 
 const form = formFactory({
   fields: {
@@ -288,7 +288,7 @@ type FieldType<Value> = {
 - `firstError` — Первая ошибка поля (`errors[0]`)
 - `resetErrors` — Сброс ошибок поля
 - `reset` — Сброс значения поля к начальному
-- `validate` — Запускает валидацию поля
+- `validate` — Запускает валидацию поля и очищает список ошибок
 - `addError` — Добавляет ошибку в список ошибок поля
 - `isValid` — `true`, если валидация поля прошла успешно
 - `isValidating` — `true`, если поле валидируется в данный момент
@@ -313,7 +313,7 @@ type DynamicFieldType<Value> = {
 
 - `name` — Имя поля
 - `values` — Текущее значение поля — массив значений элементов
-- `validate` — Запускает валидацию поля
+- `validate` — Запускает валидацию и очищает список ошибок поля
 - `validateEvents` — События, на которые будет вызываться валидация поля
 - `items` — массив [элементов](#интерфейс-экземпляра-элемента-динамического-поля-формы) поля
 - `reset` — Сброс значений элементов поля к начальным
@@ -357,7 +357,7 @@ type DynamicFieldItemType<Value> = {
 - `firstError` — Первая ошибка элемента (`errors[0]`)
 - `resetErrors` — Сброс ошибок элемента
 - `reset` — Сброс значения элемента к начальному
-- `validate` — Запускает валидацию элемента
+- `validate` — Запускает валидацию и очищает список ошибок элемента
 - `addError` — Добавляет ошибку в список ошибок элемента
 - `isValid` — `true`, если валидация элемента прошла успешно
 - `isValidating` — `true`, если элемент валидируется в данный момент
