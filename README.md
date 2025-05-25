@@ -288,7 +288,7 @@ type FieldType<Value> = {
 - `firstError` — Первая ошибка поля (`errors[0]`)
 - `resetErrors` — Сброс ошибок поля
 - `reset` — Сброс значения поля к начальному
-- `validate` — Запускает валидацию и очищает список ошибок поля
+- `validate` — Очищает список ошибок поля и затем запускает валидацию
 - `addError` — Добавляет ошибку в список ошибок поля
 - `isValid` — `true`, если валидация поля прошла успешно
 - `isValidating` — `true`, если поле валидируется в данный момент
@@ -313,7 +313,7 @@ type DynamicFieldType<Value> = {
 
 - `name` — Имя поля
 - `values` — Текущее значение поля — массив значений элементов
-- `validate` — Запускает валидацию и очищает список ошибок поля
+- `validate` — Очищает список ошибок поля и затем запускает валидацию
 - `validateEvents` — События, на которые будет вызываться валидация поля
 - `items` — массив [элементов](#интерфейс-экземпляра-элемента-динамического-поля-формы) поля
 - `reset` — Сброс значений элементов поля к начальным
@@ -357,7 +357,7 @@ type DynamicFieldItemType<Value> = {
 - `firstError` — Первая ошибка элемента (`errors[0]`)
 - `resetErrors` — Сброс ошибок элемента
 - `reset` — Сброс значения элемента к начальному
-- `validate` — Запускает валидацию и очищает список ошибок элемента
+- `validate` — Очищает список ошибок элемента и затем запускает валидацию
 - `addError` — Добавляет ошибку в список ошибок элемента
 - `isValid` — `true`, если валидация элемента прошла успешно
 - `isValidating` — `true`, если элемент валидируется в данный момент
@@ -653,7 +653,7 @@ type FieldType<Value> = {
 - `firstError` — First field error (`errors[0]`)
 - `resetErrors` — Clears field errors
 - `reset` — Resets field to initial value
-- `validate` — Triggers validation and clears error list
+- `validate` — Clears error list and then triggers validation
 - `addError` — Adds error to field's error list
 - `isValid` — `true` if field passed validation
 - `isValidating` — `true` if field is currently validating
@@ -678,7 +678,7 @@ type DynamicFieldType<Value> = {
 
 - `name` — Field name
 - `values` — Current field values - array of item values
-- `validate` — Triggers validation and clears error list
+- `validate` — Clears error list and then triggers validation
 - `validateEvents` — Events that trigger field validation
 - `items` — Array of [field items](#dynamic-form-field-item-instance-interface)
 - `reset` — Resets field items to initial values
@@ -722,7 +722,7 @@ type DynamicFieldItemType<Value> = {
 - `firstError` — First error (`errors[0]`)
 - `resetErrors` — Clears item errors
 - `reset` — Resets item to initial value
-- `validate` — Triggers validation and clears error list
+- `validate` — Clears error list and then triggers validation
 - `addError` — Adds error to item's error list
 - `isValid` — `true` if item passed validation
 - `isValidating` — `true` if item is currently validating
