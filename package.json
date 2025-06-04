@@ -2,6 +2,10 @@
   "name": "easy-mobx-forms",
   "version": "0.0.1",
   "author": "Nikita Salikov",
+  "license": "MIT",
+  "publishConfig": {
+    "@nikitosalo:registry": "https://npm.pkg.github.com"
+  },
   "type": "module",
   "files": ["dist"],
   "exports": {
@@ -22,6 +26,10 @@
   },
   "peerDependencies": {
     "mobx": "6.*"
+  },
+  "engines" : {
+    "npm" : ">=9.0.0 <10.0.0",
+    "node" : "18.16.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",
