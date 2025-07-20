@@ -6,6 +6,10 @@
   "publishConfig": {
     "@nikitosalo:registry": "https://npm.pkg.github.com"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nikitosalo/easy-mobx-forms.git"
+  },
   "type": "module",
   "files": ["dist"],
   "exports": {
