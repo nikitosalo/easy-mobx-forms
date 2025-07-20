@@ -1,5 +1,6 @@
 name: Easy mobx forms package
 
+
 on:
   release:
     types: [created]
